@@ -2,6 +2,7 @@ const express = require('express');
 const User = require('../models/userModel');
 const jwt = require("jsonwebtoken");
 const cookies = require("cookie-parser");
+const auth = require('../middlewares/authMiddleware');
 
 const userRouter  = express.Router()
 
@@ -56,6 +57,15 @@ userRouter.post('/login', async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: `Error logging in user: ${error.message}` })
     }
+})
+
+userRouter.get("/get-current-user", auth, async (req, res) => {
+    const user = await User.findById(req.body.userId).select("-password")
+    res.status(200).json({
+        success: true,
+        message: "User fetched successfully",
+        data: user
+    })
 })
 
 module.exports = userRouter
