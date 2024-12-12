@@ -5,7 +5,7 @@ require('dotenv').config()
 
 const connectDB = require('./config/db')
 const userRouter = require("./routes/userRoutes")
-
+const movieRouter = require("./routes/movieRoutes")
 
 connectDB()
 
@@ -13,6 +13,7 @@ connectDB()
 app.use(express.json({ extended: false })) // parse JSON bodies
 
 app.use("/api/users", userRouter)
+app.use("/api/movies", movieRouter)
 
 
 app.listen(process.env.PORT, () => {
