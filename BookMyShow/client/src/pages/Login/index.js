@@ -4,18 +4,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { LoginUser } from "../../api/users";
 
 function Login() {
-  // call localhoit:5000/api/users/login
   const navigate = useNavigate();
   const onFinish = async (value) => {
     try {
       const response = await LoginUser(value);
       if (response.success) {
-        console.log(response.message);
         message.success(response.message);
         localStorage.setItem("token", response.data);
-        navigate("/");
+        window.location.href = "/";
       } else {
-        console.log(response.message);
         message.error(response.message);
       }
     } catch (err) {
