@@ -5,6 +5,7 @@ const {
   getAllMovies,
   updateMovie,
   deleteMovie,
+  getMovieById,
 } = require("../controllers/movieController")
 
 // add a movie
@@ -12,6 +13,9 @@ movieRouter.post("/add-movie", addMovie)
 
 // get all movies
 movieRouter.get("/get-all-movies", getAllMovies)
+
+// get movie by id
+movieRouter.get("/movie/:id", getMovieById)
 
 // update a movie
 movieRouter.put("/update-movie", updateMovie)

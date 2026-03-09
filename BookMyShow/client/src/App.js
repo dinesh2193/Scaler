@@ -9,6 +9,8 @@ import store from "./redux/store";
 import Admin from './pages/Admin';
 import Partner from './pages/Partner';
 import Profile from './pages/User';
+import SingleMovie from './pages/Home/SingleMovie';
+import BookShow from './pages/Home/BookShow';
 
 function App() {
   return (
@@ -36,6 +38,16 @@ function App() {
             <Route path="/profile" element={
               <ProtectedComponent>
                 <Profile />
+              </ProtectedComponent>
+            } />
+            <Route path="/movie/:id" element={
+              <ProtectedComponent>
+                <SingleMovie />
+              </ProtectedComponent>
+            } />
+            <Route path="/book-show/:showId" element={
+              <ProtectedComponent>
+                <BookShow />
               </ProtectedComponent>
             } />
           </Routes>
