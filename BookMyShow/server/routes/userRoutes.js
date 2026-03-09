@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/userModel');
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const cookies = require("cookie-parser");
 const auth = require('../middlewares/authMiddleware');
 const sendEmail = require('../utils/emailHelper');
@@ -19,6 +20,7 @@ userRouter.post('/register', async (req, res) => {
             })
         }
         const newUser = new User(req.body)
+        newUser.password = await bcrypt.hash(req.body.password, 10)
         await newUser.save()
         res.status(201).json({
             success: true,
@@ -40,7 +42,7 @@ userRouter.post('/login', async (req, res) => {
                 message: 'User does not exist. Please register first'
             })
         }
-        if (user.password !== req.body.password) {
+        if (!(await bcrypt.compare(req.body.password, user.password))) {
             return res.status(400).json({
                 success: false,
                 message: 'Password is incorrect. Please try again with correct credentials'
@@ -127,7 +129,7 @@ userRouter.patch("/resetpassword/:email", async (req, res) => {
             });
         }
 
-        user.password = req.body.password;
+        user.password = await bcrypt.hash(req.body.password, 10);
         user.otp = undefined;
         user.otpExpiry = undefined;
         await user.save();

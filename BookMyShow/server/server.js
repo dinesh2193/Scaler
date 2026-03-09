@@ -1,4 +1,8 @@
 const express = require("express")
+const helmet = require("helmet")
+const rateLimit = require("express-rate-limit")
+const mongoSanitize = require("express-mongo-sanitize")
+const cors = require("cors")
 
 const app = express()
 require('dotenv').config()
@@ -12,16 +16,33 @@ const bookingRouter = require("./routes/bookingRoutes")
 
 connectDB()
 
-/** Routes */
-app.use(express.json({ extended: false })) // parse JSON bodies
+// Security middleware
+app.use(helmet())
+app.disable("x-powered-by")
 
+app.use(cors({
+  origin: ["http://localhost:3000"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  credentials: true
+}))
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  message: { success: false, message: "Too many requests, try again later" }
+})
+app.use("/api/", apiLimiter)
+
+app.use(express.json({ extended: false }))
+app.use(mongoSanitize())
+
+// Routes
 app.use("/api/users", userRouter)
 app.use("/api/movies", movieRouter)
 app.use("/api/theatres", theatreRouter)
 app.use("/api/shows", showRouter)
 app.use("/api/bookings", bookingRouter)
 
-
 app.listen(process.env.PORT, () => {
-    console.log(`Server is running on port ${process.env.PORT}`)
+  console.log(`Server is running on port ${process.env.PORT}`)
 })
