@@ -3,6 +3,7 @@ const User = require('../models/userModel');
 const jwt = require("jsonwebtoken");
 const cookies = require("cookie-parser");
 const auth = require('../middlewares/authMiddleware');
+const sendEmail = require('../utils/emailHelper');
 
 const userRouter  = express.Router()
 
@@ -67,5 +68,80 @@ userRouter.get("/get-current-user", auth, async (req, res) => {
         data: user
     })
 })
+
+// Forget password - send OTP
+userRouter.patch("/forgetpassword", async (req, res) => {
+    try {
+        const user = await User.findOne({ email: req.body.email });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found with this email",
+            });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        user.otp = otp;
+        user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        await user.save();
+
+        await sendEmail(user.email, "Password Reset OTP - BookMyShow", "otp.html", {
+            name: user.name,
+            otp: otp,
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "OTP sent to your email",
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+});
+
+// Reset password with OTP
+userRouter.patch("/resetpassword/:email", async (req, res) => {
+    try {
+        const user = await User.findOne({ email: req.params.email });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        if (user.otp !== req.body.otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid OTP",
+            });
+        }
+
+        if (user.otpExpiry < Date.now()) {
+            return res.status(400).json({
+                success: false,
+                message: "OTP has expired",
+            });
+        }
+
+        user.password = req.body.password;
+        user.otp = undefined;
+        user.otpExpiry = undefined;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Password reset successfully",
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+});
 
 module.exports = userRouter

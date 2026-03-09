@@ -11,6 +11,8 @@ import Partner from './pages/Partner';
 import Profile from './pages/User';
 import SingleMovie from './pages/Home/SingleMovie';
 import BookShow from './pages/Home/BookShow';
+import ForgotPassword from './pages/Login/ForgotPassword';
+import ResetPasswordPage from './pages/Login/ResetPassword';
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
               } />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:email" element={<ResetPasswordPage />} />
             <Route path="/admin" element={
               <ProtectedComponent>
                 <Admin />
