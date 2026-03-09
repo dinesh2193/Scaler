@@ -1,4 +1,5 @@
 const express = require("express")
+const path = require("path")
 const helmet = require("helmet")
 const rateLimit = require("express-rate-limit")
 const mongoSanitize = require("express-mongo-sanitize")
@@ -21,7 +22,7 @@ app.use(helmet())
 app.disable("x-powered-by")
 
 app.use(cors({
-  origin: ["http://localhost:3000"],
+  origin: ["http://localhost:3000", process.env.CLIENT_URL].filter(Boolean),
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   credentials: true
 }))
@@ -42,6 +43,15 @@ app.use("/api/movies", movieRouter)
 app.use("/api/theatres", theatreRouter)
 app.use("/api/shows", showRouter)
 app.use("/api/bookings", bookingRouter)
+
+// Serve static files in production
+const clientBuildPath = path.join(__dirname, "../client/build")
+if (require("fs").existsSync(clientBuildPath)) {
+  app.use(express.static(clientBuildPath))
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(clientBuildPath, "index.html"))
+  })
+}
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`)
