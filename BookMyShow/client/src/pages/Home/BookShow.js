@@ -149,7 +149,7 @@ function BookShow() {
               billingAddress
               amount={selectedSeats.length * show.ticketPrice * 100}
               currency="INR"
-              stripeKey="pk_test_51QSPBbSBGMSrmGxaFJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJq"
+              stripeKey={process.env.REACT_APP_STRIPE_KEY}
             >
               <Button type="primary">Pay Now</Button>
             </StripeCheckout>

@@ -1,6 +1,6 @@
 import React from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { useNavigate, Link } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import {
     HomeOutlined,
     LogoutOutlined,
@@ -28,29 +28,19 @@ function ProtectedComponent({children}) {
         },
         {
             label: `${user ? user.name : ""}`,
+            key: "user-menu",
             icon: <UserOutlined />,
             children: [
                 {
-                    label: (
-                        <span onClick={()=>{
-                            if (user.role === "admin") {
-                                navigate("/admin")
-                            } else if (user.role === "partner") {
-                                navigate("/partner")
-                            } else {
-                                navigate("/profile")
-                            }
-                        }}>My Profile</span>
-                    ),
+                    label: "My Profile",
+                    key: user?.role === "admin" ? "/admin" : user?.role === "partner" ? "/partner" : "/profile",
                     icon: <ProfileOutlined />
                 },
                 {
-                    label: (
-                        <Link to="/login" onClick={()=>{localStorage.removeItem("token")}}>Logout</Link>
-                    ),
+                    label: "Logout",
+                    key: "/login",
                     icon: <LogoutOutlined />
                 }
-                
             ]
         }
     ]
@@ -100,7 +90,10 @@ function ProtectedComponent({children}) {
                                         Book My Show
                             </h3>
                             <Menu theme="dark" mode="horizontal" items={navItems} onClick={({ key }) => {
-                                if (key) navigate(key);
+                                if (key === "/login") {
+                                    localStorage.removeItem("token");
+                                }
+                                if (key && key !== "user-menu") navigate(key);
                             }} />
                     </Header>
                     <div style={{ padding: 24, minHeight: 380, background: "#fff" }}>
