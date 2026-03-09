@@ -18,7 +18,16 @@ const bookingRouter = require("./routes/bookingRoutes")
 connectDB()
 
 // Security middleware
-app.use(helmet())
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://checkout.stripe.com"],
+      frameSrc: ["'self'", "https://checkout.stripe.com"],
+      connectSrc: ["'self'", "https://checkout.stripe.com"],
+    },
+  },
+}))
 app.disable("x-powered-by")
 
 app.use(cors({
