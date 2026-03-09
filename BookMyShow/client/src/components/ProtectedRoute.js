@@ -99,7 +99,9 @@ function ProtectedComponent({children}) {
                             <h3 className="text-white m-0" style={{ color: "white" }}>
                                         Book My Show
                             </h3>
-                            <Menu theme="dark" mode="horizontal" items={navItems} />
+                            <Menu theme="dark" mode="horizontal" items={navItems} onClick={({ key }) => {
+                                if (key) navigate(key);
+                            }} />
                     </Header>
                     <div style={{ padding: 24, minHeight: 380, background: "#fff" }}>
                         {children}
