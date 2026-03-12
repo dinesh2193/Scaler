@@ -4,22 +4,32 @@ const Show = require("../models/showModel");
 
 const makePayment = async (req, res) => {
   try {
-    const { token, amount } = req.body;
-    const customer = await stripe.customers.create({
-      email: token.email,
-      source: token.id,
+    const { amount, showId, seats } = req.body;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "inr",
+            product_data: {
+              name: "Movie Ticket Booking",
+              description: `Seats: ${seats.join(", ")}`,
+            },
+            unit_amount: amount,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: `${process.env.CLIENT_URL || "http://localhost:3000"}/book-show/${showId}?session_id={CHECKOUT_SESSION_ID}&seats=${seats.join(",")}`,
+      cancel_url: `${process.env.CLIENT_URL || "http://localhost:3000"}/book-show/${showId}`,
     });
-    const paymentIntent = await stripe.charges.create({
-      amount: amount,
-      currency: "inr",
-      customer: customer.id,
-      receipt_email: token.email,
-    });
-    const transactionId = paymentIntent.id;
+
     res.send({
       success: true,
-      message: "Payment successful",
-      data: transactionId,
+      message: "Checkout session created",
+      data: session.url,
     });
   } catch (error) {
     return res.status(500).send({

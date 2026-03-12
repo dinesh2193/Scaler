@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, message } from "antd";
-import StripeCheckout from "react-stripe-checkout";
 import { SetLoading } from "../../redux/loaderSlice";
 import { getShowById } from "../../api/shows";
 import { makePayment, bookShow } from "../../api/bookings";
@@ -10,6 +9,7 @@ import moment from "moment";
 
 function BookShow() {
   const { showId } = useParams();
+  const [searchParams] = useSearchParams();
   const [show, setShow] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const dispatch = useDispatch();
@@ -27,6 +27,34 @@ function BookShow() {
     } catch (err) {
       dispatch(SetLoading(false));
       message.error(err.message);
+    }
+  };
+
+  // Handle return from Stripe Checkout
+  const handleStripeReturn = async () => {
+    const sessionId = searchParams.get("session_id");
+    const seatsParam = searchParams.get("seats");
+    if (sessionId && seatsParam && user) {
+      try {
+        dispatch(SetLoading(true));
+        const seats = seatsParam.split(",").map(Number);
+        const bookingResponse = await bookShow({
+          show: showId,
+          user: user._id,
+          seats,
+          transactionId: sessionId,
+        });
+        if (bookingResponse.success) {
+          message.success("Booking confirmed!");
+          navigate("/");
+        } else {
+          message.error(bookingResponse.message);
+        }
+        dispatch(SetLoading(false));
+      } catch (err) {
+        dispatch(SetLoading(false));
+        message.error(err.message);
+      }
     }
   };
 
@@ -64,29 +92,18 @@ function BookShow() {
     );
   };
 
-  const onToken = async (token) => {
+  const handlePayment = async () => {
     try {
       dispatch(SetLoading(true));
-      const paymentResponse = await makePayment({
-        token,
+      const response = await makePayment({
         amount: selectedSeats.length * show.ticketPrice * 100,
+        showId: show._id,
+        seats: selectedSeats,
       });
-      if (paymentResponse.success) {
-        message.success(paymentResponse.message);
-        const bookingResponse = await bookShow({
-          show: show._id,
-          user: user._id,
-          seats: selectedSeats,
-          transactionId: paymentResponse.data,
-        });
-        if (bookingResponse.success) {
-          message.success(bookingResponse.message);
-          navigate("/");
-        } else {
-          message.error(bookingResponse.message);
-        }
+      if (response.success) {
+        window.location.href = response.data;
       } else {
-        message.error(paymentResponse.message);
+        message.error(response.message);
       }
       dispatch(SetLoading(false));
     } catch (err) {
@@ -99,6 +116,13 @@ function BookShow() {
     getData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (show && user) {
+      handleStripeReturn();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show, user]);
 
   return (
     show && (
@@ -144,15 +168,9 @@ function BookShow() {
                 Total: <span>Rs. {selectedSeats.length * show.ticketPrice}</span>
               </p>
             </div>
-            <StripeCheckout
-              token={onToken}
-              billingAddress
-              amount={selectedSeats.length * show.ticketPrice * 100}
-              currency="INR"
-              stripeKey={process.env.REACT_APP_STRIPE_KEY}
-            >
-              <Button type="primary">Pay Now</Button>
-            </StripeCheckout>
+            <Button type="primary" onClick={handlePayment}>
+              Pay Now
+            </Button>
           </div>
         )}
       </div>

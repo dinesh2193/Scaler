@@ -22,9 +22,10 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://checkout.stripe.com"],
-      frameSrc: ["'self'", "https://checkout.stripe.com"],
-      connectSrc: ["'self'", "https://checkout.stripe.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com", "https://checkout.stripe.com"],
+      frameSrc: ["'self'", "https://js.stripe.com", "https://checkout.stripe.com"],
+      connectSrc: ["'self'", "https://api.stripe.com", "https://checkout.stripe.com"],
+      imgSrc: ["'self'", "data:", "https:", "http:"],
     },
   },
 }))
